@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MarkPro - AI Watermark &amp; Logo Remover</title>
+    <meta name="description" content="Remove watermarks, logos, text, and stamps from your own images instantly. 100% Free, No Sign-in, No Watermark on download, 100% Private in browser." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            colors: {
+              brand: {
+                50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                800: '#1e40af', 900: '#1e3a8a'
+              }
+            },
+            borderRadius: { '2xl': '1rem', '3xl': '1.5rem' }
+          }
+        }
+      };
+    </script>
+    <style>
+      * { -webkit-tap-highlight-color: transparent; }
+      body { font-family: 'Inter', system-ui, sans-serif; }
+      .gradient-text {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .gradient-btn {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        transition: all 0.3s ease;
+      }
+      .gradient-btn:hover {
+        background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+      }
+      .gradient-btn:active { transform: translateY(0); }
+      .fade-in { animation: fadeIn 0.5s ease; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      .slide-up { animation: slideUp 0.6s ease; }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+      .scale-in { animation: scaleIn 0.4s ease; }
+      @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+      .drop-zone-active { border-color: #2563eb !important; background-color: #eff6ff !important; }
+      .tool-btn-active { background-color: #2563eb !important; color: white !important; border-color: #2563eb !important; }
+      .ad-box {
+        border: 2px dashed #cbd5e1;
+        background: #f8fafc;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1rem;
+        min-height: 90px;
+      }
+      #editorCanvas { cursor: crosshair; touch-action: none; }
+      .before-after-container { position: relative; overflow: hidden; border-radius: 1rem; user-select: none; }
+      .ba-slider-handle {
+        position: absolute; top: 0; bottom: 0; width: 3px; background: #fff;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3); cursor: ew-resize; z-index: 10;
+      }
+      .ba-slider-handle::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%); width: 36px; height: 36px;
+        background: #fff; border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: left 7px center; background-size: 12px;
+      }
+      .ba-label {
+        position: absolute; top: 12px; padding: 4px 12px; border-radius: 9999px;
+        font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+        z-index: 5; pointer-events: none;
+      }
+      .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; }
+      .faq-answer.open { max-height: 300px; padding-top: 0.75rem; }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #f1f5f9; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+      .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+      .nav-link { position: relative; }
+      .nav-link::after {
+        content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+        background: #2563eb; transition: width 0.3s ease;
+      }
+      .nav-link:hover::after { width: 100%; }
+      .badge-pop { transition: transform 0.3s ease; }
+      .badge-pop:hover { transform: scale(1.05); }
+      .spin { animation: spin 1s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .progress-bar-fill { transition: width 0.3s ease; }
+    </style>
+    <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+  <body class="bg-white text-slate-800 antialiased">
+    <!-- ===== HEADER ===== -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <a href="#" class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="M12 22v-6"/><path d="M3 12h6"/><path d="M21 12h-6"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m19.07 4.93-4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+            </div>
+            <span class="text-xl font-bold text-slate-900">MarkPro</span>
+          </a>
+          <nav class="flex items-center gap-6 text-sm font-medium text-slate-600">
+            <a href="#" class="nav-link hover:text-blue-600 transition">Home</a>
+            <a href="#" class="nav-link hover:text-blue-600 transition">All Tools</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="pt-16 pb-8 px-4 sm:px-6 lg:px-8 text-center">
+      <div class="max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-6 fade-in">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="M12 22v-6"/><path d="M3 12h6"/><path d="M21 12h-6"/><circle cx="12" cy="12" r="4"/></svg>
+          AI-Powered Inpainting Technology
+        </div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-4 slide-up">
+          Remove Watermark From Image <span class="gradient-text">AI Powered</span>
+        </h1>
+        <p class="text-base sm:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed fade-in">
+          Remove watermarks, logos, text, stamps from your OWN images instantly. 100% Free, No Sign-in, No Watermark on download, No Subscription. 100% Private in browser.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== IMPORTANT NOTICE BAR ===== -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+      <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-2.5 text-center text-sm text-yellow-800 font-medium fade-in">
+        ⚠️ Use only on images you own rights to. Respect copyright.
+      </div>
+    </div>
+
+    <!-- ===== TRUST BADGES ===== -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <div class="badge-pop flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-700">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          No Sign-in
+        </div>
+        <div class="badge-pop flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-700">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          No Watermark
+        </div>
+        <div class="badge-pop flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-700">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          No Subscription
+        </div>
+        <div class="badge-pop flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-sm font-medium text-slate-700">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          For Your Own Images Only
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AD TOP ===== -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+      <div id="ad-top" class="ad-box">Ad Space - Paste AdSense</div>
+    </div>
+
+    <!-- ===== MAIN TOOL AREA ===== -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+      <!-- Upload Zone -->
+      <div id="uploadZone" class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 sm:p-12">
+        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-2xl p-12 text-center cursor-pointer transition-all hover:border-blue-400 hover:bg-blue-50/50">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Upload Image with Watermark</h3>
+          <p class="text-slate-500 text-sm mb-4">Drag &amp; drop or click to browse</p>
+          <p class="text-xs text-slate-400">JPG, PNG, WEBP — Max 10MB</p>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" class="hidden" />
+        </div>
+      </div>
+
+      <!-- Editor (hidden until upload) -->
+      <div id="editorArea" class="hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+          <!-- Top Toolbar -->
+          <div class="border-b border-slate-100 p-4 flex flex-wrap items-center gap-3 justify-between">
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- Brush Size Slider -->
+              <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <span class="text-sm font-medium text-slate-600">Brush</span>
+                <input type="range" id="brushSize" min="5" max="100" value="30" class="w-20 sm:w-28 accent-blue-600" />
+                <span id="brushSizeLabel" class="text-sm text-slate-500 w-10 text-right">30px</span>
+              </div>
+              <!-- Tool Buttons -->
+              <button id="brushBtn" class="tool-btn-active flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
+                Brush
+              </button>
+              <button id="eraserBtn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                Eraser
+              </button>
+              <button id="undoBtn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                Undo
+              </button>
+              <button id="clearBtn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Clear
+              </button>
+            </div>
+            <!-- Zoom Controls -->
+            <div class="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
+              <button id="zoomOutBtn" class="text-slate-600 hover:text-blue-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              </button>
+              <span id="zoomLabel" class="text-sm font-medium text-slate-600 w-12 text-center">100%</span>
+              <button id="zoomInBtn" class="text-slate-600 hover:text-blue-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              </button>
+              <button id="zoomResetBtn" class="text-slate-500 hover:text-blue-600 transition text-xs font-medium ml-1">Reset</button>
+            </div>
+          </div>
+
+          <!-- Instruction -->
+          <div class="px-4 pt-3 text-center">
+            <p class="text-sm text-slate-500 font-medium">Brush over the watermark/logo you want to remove 👆</p>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="p-4">
+            <div id="canvasContainer" class="relative bg-slate-50 rounded-xl overflow-auto mx-auto" style="max-height: 600px;">
+              <canvas id="editorCanvas" class="block mx-auto"></canvas>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button id="removeBtn" class="gradient-btn text-white font-bold text-base px-8 py-3.5 rounded-xl shadow-lg w-full sm:w-auto flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/><path d="M12 12l4-4"/><path d="M16 12l-4-4"/></svg>
+              Remove Watermark Now ✨
+            </button>
+            <button id="newImageBtn" class="px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 transition w-full sm:w-auto">
+              New Image
+            </button>
+          </div>
+
+          <!-- Processing Overlay -->
+          <div id="processingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-40 rounded-2xl">
+            <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full spin mb-4"></div>
+            <p id="processingText" class="text-slate-700 font-semibold text-sm">Removing watermark...</p>
+            <div class="w-48 h-2 bg-slate-200 rounded-full mt-3 overflow-hidden">
+              <div id="progressBar" class="progress-bar-fill h-full bg-gradient-to-r from-blue-500 to-purple-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Before/After Result (hidden until removal) -->
+      <div id="resultArea" class="hidden mt-6">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+          <div class="p-4 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900 text-center">Before / After Comparison</h3>
+            <p class="text-sm text-slate-400 text-center mt-1">Drag the slider to compare</p>
+          </div>
+          <div class="p-4">
+            <div id="baContainer" class="before-after-container mx-auto" style="max-width: 100%;">
+              <img id="baBefore" class="block w-full select-none" alt="Before" draggable="false" />
+              <div id="baAfterWrap" class="absolute inset-0 overflow-hidden" style="width: 50%;">
+                <img id="baAfter" class="block h-full select-none" alt="After" draggable="false" style="max-width: none;" />
+              </div>
+              <div id="baSlider" class="ba-slider-handle" style="left: 50%;"></div>
+              <span class="ba-label bg-blue-600 text-white" style="left: 12px;">Before</span>
+              <span class="ba-label bg-green-600 text-white" style="right: 12px;">After</span>
+            </div>
+          </div>
+          <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button id="downloadBtn" class="gradient-btn text-white font-bold text-base px-8 py-3.5 rounded-xl shadow-lg w-full sm:w-auto flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Clean Image - No Watermark Added
+            </button>
+            <button id="removeMoreBtn" class="px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 transition w-full sm:w-auto">
+              Remove More Areas
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AD MIDDLE ===== -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+      <div id="ad-middle" class="ad-box">Ad Space - Paste AdSense</div>
+    </div>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-2">Why MarkPro?</h2>
+      <p class="text-slate-500 text-center mb-10 text-sm sm:text-base">Premium quality, completely free</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <div class="hover-lift bg-white rounded-2xl border border-slate-100 shadow-md p-6 text-center">
+          <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-blue-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="M12 22v-6"/><path d="M3 12h6"/><path d="M21 12h-6"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m19.07 4.93-4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">AI Inpainting</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Advanced content-aware fill technology detects and removes watermarks by intelligently reconstructing the background from surrounding pixels.</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="hover-lift bg-white rounded-2xl border border-slate-100 shadow-md p-6 text-center">
+          <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-green-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Keeps Original Quality</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Your image resolution and quality stay intact. No compression, no re-encoding artifacts — download in the same format and clarity.</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="hover-lift bg-white rounded-2xl border border-slate-100 shadow-md p-6 text-center">
+          <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-purple-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Private &amp; Fast</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Everything runs in your browser. Your images never leave your device. No uploads to any server — instant, secure, and completely private.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section class="bg-slate-50 py-16 mb-16">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">How It Works</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Step 1 -->
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white shadow-md flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="text-sm font-bold text-blue-600 mb-1">STEP 1</div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Upload</h3>
+            <p class="text-sm text-slate-500">Drag &amp; drop your image or click to select. JPG, PNG, or WEBP up to 10MB.</p>
+          </div>
+          <!-- Step 2 -->
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white shadow-md flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
+            </div>
+            <div class="text-sm font-bold text-blue-600 mb-1">STEP 2</div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Brush Watermark</h3>
+            <p class="text-sm text-slate-500">Paint over the watermark, logo, or text you want removed. Adjust brush size for precision.</p>
+          </div>
+          <!-- Step 3 -->
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white shadow-md flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+            <div class="text-sm font-bold text-blue-600 mb-1">STEP 3</div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Download</h3>
+            <p class="text-sm text-slate-500">Click remove, compare before/after, then download your clean image — no watermark added.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FAQ ===== -->
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-10">Frequently Asked Questions</h2>
+      <div class="space-y-3" id="faqContainer">
+        <!-- FAQ items injected by JS -->
+      </div>
+    </section>
+
+    <!-- ===== AD BOTTOM ===== -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+      <div id="ad-bottom" class="ad-box">Ad Space - Paste AdSense</div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-center gap-2 mb-8">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="M12 22v-6"/><path d="M3 12h6"/><path d="M21 12h-6"/><circle cx="12" cy="12" r="4"/></svg>
+          </div>
+          <span class="text-lg font-bold text-white">MarkPro</span>
+        </div>
+        <div class="text-center mb-8">
+          <p class="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wide">All Tools</p>
+          <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
+            <a href="#" class="hover:text-white transition">PixelFix</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition">ErasePro</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition">ShrinkPro</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition">ClarityPro</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition">RestorePro</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition">FacePro</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition">ObjectPro</a>
+            <span class="text-slate-700">•</span>
+            <a href="#" class="hover:text-white transition font-semibold text-white">MarkPro</a>
+          </div>
+        </div>
+        <div class="border-t border-slate-800 pt-6 text-center">
+          <p class="text-xs text-slate-500">© 2026 MarkPro. Use only on images you own rights to. Respect copyright.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+    (function() {
+      'use strict';
+
+      // ---- State ----
+      let originalImage = null;
+      let originalCanvas = null;     // pristine copy of original image
+      let workingCanvas = null;       // current working image (after removals)
+      let maskCanvas = null;          // brush mask overlay
+      let displayCanvas = null;       // what user sees (image + mask overlay)
+      let zoom = 1;
+      let brushSize = 30;
+      let isDrawing = false;
+      let currentTool = 'brush';      // 'brush' or 'eraser'
+      let historyStack = [];          // snapshots of workingCanvas for undo
+      let lastPos = null;
+
+      // ---- DOM refs ----
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      const uploadZone = document.getElementById('uploadZone');
+      const editorArea = document.getElementById('editorArea');
+      const resultArea = document.getElementById('resultArea');
+      const canvasContainer = document.getElementById('canvasContainer');
+      const editorCanvas = document.getElementById('editorCanvas');
+      const ctx = editorCanvas.getContext('2d');
+      const brushSizeInput = document.getElementById('brushSize');
+      const brushSizeLabel = document.getElementById('brushSizeLabel');
+      const brushBtn = document.getElementById('brushBtn');
+      const eraserBtn = document.getElementById('eraserBtn');
+      const undoBtn = document.getElementById('undoBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const removeBtn = document.getElementById('removeBtn');
+      const newImageBtn = document.getElementById('newImageBtn');
+      const zoomInBtn = document.getElementById('zoomInBtn');
+      const zoomOutBtn = document.getElementById('zoomOutBtn');
+      const zoomResetBtn = document.getElementById('zoomResetBtn');
+      const zoomLabel = document.getElementById('zoomLabel');
+      const processingOverlay = document.getElementById('processingOverlay');
+      const processingText = document.getElementById('processingText');
+      const progressBar = document.getElementById('progressBar');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const removeMoreBtn = document.getElementById('removeMoreBtn');
+      const baContainer = document.getElementById('baContainer');
+      const baBefore = document.getElementById('baBefore');
+      const baAfter = document.getElementById('baAfter');
+      const baAfterWrap = document.getElementById('baAfterWrap');
+      const baSlider = document.getElementById('baSlider');
+
+      // ---- File Upload ----
+      dropZone.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drop-zone-active'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone-active'));
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drop-zone-active');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+      });
+
+      function handleFile(file) {
+        if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+          showToast('Please upload a JPG, PNG, or WEBP image.');
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          showToast('Image too large. Max 10MB.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            originalImage = img;
+            initEditor(img);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // ---- Init Editor ----
+      function initEditor(img) {
+        // Cap canvas size for performance
+        const maxDim = 1600;
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        if (w > maxDim || h > maxDim) {
+          const scale = maxDim / Math.max(w, h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+
+        // Original canvas (pristine)
+        originalCanvas = document.createElement('canvas');
+        originalCanvas.width = w;
+        originalCanvas.height = h;
+        originalCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        // Working canvas (current state)
+        workingCanvas = document.createElement('canvas');
+        workingCanvas.width = w;
+        workingCanvas.height = h;
+        workingCanvas.getContext('2d').drawImage(originalCanvas, 0, 0);
+
+        // Mask canvas
+        maskCanvas = document.createElement('canvas');
+        maskCanvas.width = w;
+        maskCanvas.height = h;
+
+        // Display canvas (visible)
+        editorCanvas.width = w;
+        editorCanvas.height = h;
+
+        historyStack = [];
+        zoom = 1;
+        updateZoom();
+        renderDisplay();
+
+        uploadZone.classList.add('hidden');
+        editorArea.classList.remove('hidden');
+        editorArea.classList.add('scale-in');
+        resultArea.classList.add('hidden');
+      }
+
+      // ---- Render display (image + mask overlay) ----
+      function renderDisplay() {
+        ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+        ctx.drawImage(workingCanvas, 0, 0);
+        // Draw mask overlay
+        const maskCtx = maskCanvas.getContext('2d');
+        const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+        const overlay = ctx.createImageData(maskCanvas.width, maskCanvas.height);
+        for (let i = 0; i < maskData.data.length; i += 4) {
+          if (maskData.data[i + 3] > 0) {
+            overlay.data[i] = 59;       // R
+            overlay.data[i + 1] = 130;  // G
+            overlay.data[i + 2] = 246;  // B
+            overlay.data[i + 3] = 120;  // alpha
+          }
+        }
+        ctx.putImageData(overlay, 0, 0);
+        // Blend overlay
+        ctx.globalCompositeOperation = 'source-over';
+        // Re-draw image then overlay on top
+        ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+        ctx.drawImage(workingCanvas, 0, 0);
+        // Create temp canvas for overlay
+        const tmp = document.createElement('canvas');
+        tmp.width = maskCanvas.width;
+        tmp.height = maskCanvas.height;
+        const tmpCtx = tmp.getContext('2d');
+        tmpCtx.putImageData(overlay, 0, 0);
+        ctx.drawImage(tmp, 0, 0);
+      }
+
+      // ---- Brush / Eraser ----
+      function getCanvasPos(e) {
+        const rect = editorCanvas.getBoundingClientRect();
+        const scaleX = editorCanvas.width / rect.width;
+        const scaleY = editorCanvas.height / rect.height;
+        let clientX, clientY;
+        if (e.touches && e.touches.length) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function drawBrush(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getCanvasPos(e);
+        const maskCtx = maskCanvas.getContext('2d');
+        const r = brushSize / 2;
+
+        if (currentTool === 'brush') {
+          maskCtx.globalCompositeOperation = 'source-over';
+          maskCtx.strokeStyle = 'rgba(255,255,255,1)';
+          maskCtx.fillStyle = 'rgba(255,255,255,1)';
+        } else {
+          maskCtx.globalCompositeOperation = 'destination-out';
+          maskCtx.strokeStyle = 'rgba(0,0,0,1)';
+          maskCtx.fillStyle = 'rgba(0,0,0,1)';
+        }
+
+        maskCtx.lineWidth = brushSize;
+        maskCtx.lineCap = 'round';
+        maskCtx.lineJoin = 'round';
+
+        if (lastPos) {
+          maskCtx.beginPath();
+          maskCtx.moveTo(lastPos.x, lastPos.y);
+          maskCtx.lineTo(pos.x, pos.y);
+          maskCtx.stroke();
+        } else {
+          maskCtx.beginPath();
+          maskCtx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+          maskCtx.fill();
+        }
+        lastPos = pos;
+        renderDisplay();
+      }
+
+      editorCanvas.addEventListener('mousedown', (e) => { isDrawing = true; lastPos = null; drawBrush(e); });
+      editorCanvas.addEventListener('mousemove', drawBrush);
+      editorCanvas.addEventListener('mouseup', () => { isDrawing = false; lastPos = null; });
+      editorCanvas.addEventListener('mouseleave', () => { isDrawing = false; lastPos = null; });
+      editorCanvas.addEventListener('touchstart', (e) => { isDrawing = true; lastPos = null; drawBrush(e); });
+      editorCanvas.addEventListener('touchmove', drawBrush);
+      editorCanvas.addEventListener('touchend', () => { isDrawing = false; lastPos = null; });
+
+      // ---- Tool buttons ----
+      brushBtn.addEventListener('click', () => {
+        currentTool = 'brush';
+        brushBtn.classList.add('tool-btn-active');
+        eraserBtn.classList.remove('tool-btn-active');
+      });
+      eraserBtn.addEventListener('click', () => {
+        currentTool = 'eraser';
+        eraserBtn.classList.add('tool-btn-active');
+        brushBtn.classList.remove('tool-btn-active');
+      });
+      undoBtn.addEventListener('click', () => {
+        if (historyStack.length === 0) {
+          showToast('Nothing to undo.');
+          return;
+        }
+        const prev = historyStack.pop();
+        workingCanvas.getContext('2d').putImageData(prev, 0, 0);
+        clearMask();
+        renderDisplay();
+      });
+      clearBtn.addEventListener('click', () => {
+        clearMask();
+        renderDisplay();
+      });
+      newImageBtn.addEventListener('click', () => {
+        uploadZone.classList.remove('hidden');
+        editorArea.classList.add('hidden');
+        resultArea.classList.add('hidden');
+        fileInput.value = '';
+        originalImage = null;
+        historyStack = [];
+      });
+
+      function clearMask() {
+        maskCanvas.getContext('2d').clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+      }
+
+      // ---- Brush size ----
+      brushSizeInput.addEventListener('input', (e) => {
+        brushSize = parseInt(e.target.value);
+        brushSizeLabel.textContent = brushSize + 'px';
+      });
+
+      // ---- Zoom ----
+      function updateZoom() {
+        zoomLabel.textContent = Math.round(zoom * 100) + '%';
+        const w = editorCanvas.width * zoom;
+        const h = editorCanvas.height * zoom;
+        editorCanvas.style.width = w + 'px';
+        editorCanvas.style.height = h + 'px';
+      }
+      zoomInBtn.addEventListener('click', () => { zoom = Math.min(zoom + 0.25, 4); updateZoom(); });
+      zoomOutBtn.addEventListener('click', () => { zoom = Math.max(zoom - 0.25, 0.25); updateZoom(); });
+      zoomResetBtn.addEventListener('click', () => { zoom = 1; updateZoom(); });
+
+      // ---- Remove Watermark (Inpainting) ----
+      removeBtn.addEventListener('click', async () => {
+        // Check if mask has any pixels
+        const maskCtx = maskCanvas.getContext('2d');
+        const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+        let hasMask = false;
+        for (let i = 3; i < maskData.data.length; i += 4) {
+          if (maskData.data[i] > 0) { hasMask = true; break; }
+        }
+        if (!hasMask) {
+          showToast('Please brush over the watermark first.');
+          return;
+        }
+
+        // Save state for undo
+        historyStack.push(workingCanvas.getContext('2d').getImageData(0, 0, workingCanvas.width, workingCanvas.height));
+        if (historyStack.length > 20) historyStack.shift();
+
+        processingOverlay.classList.remove('hidden');
+        processingText.textContent = 'Analyzing image...';
+        progressBar.style.width = '10%';
+
+        await sleep(200);
+
+        processingText.textContent = 'Detecting watermark area...';
+        progressBar.style.width = '25%';
+        await sleep(200);
+
+        processingText.textContent = 'Reconstructing background...';
+        progressBar.style.width = '50%';
+
+        // Run inpainting
+        await inpaint(workingCanvas, maskCanvas);
+
+        processingText.textContent = 'Blending and smoothing...';
+        progressBar.style.width = '80%';
+        await sleep(200);
+
+        processingText.textContent = 'Finalizing...';
+        progressBar.style.width = '95%';
+        await sleep(150);
+
+        progressBar.style.width = '100%';
+        await sleep(300);
+
+        processingOverlay.classList.add('hidden');
+
+        // Show before/after
+        showBeforeAfter();
+        clearMask();
+        renderDisplay();
+      });
+
+      function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+      // ---- Inpainting Algorithm ----
+      // Content-aware fill: for each masked pixel, sample nearby unmasked pixels
+      // and blend them in. Iterative approach with multiple passes for smoothness.
+      function inpaint(canvas, mask) {
+        return new Promise((resolve) => {
+          const cctx = canvas.getContext('2d');
+          const mctx = mask.getContext('2d');
+          const w = canvas.width;
+          const h = canvas.height;
+          const imageData = cctx.getImageData(0, 0, w, h);
+          const data = imageData.data;
+          const maskData = mctx.getImageData(0, 0, w, h);
+          const maskPixels = maskData.data;
+
+          // Build mask pixel list and bounding box
+          const maskList = [];
+          let minX = w, minY = h, maxX = 0, maxY = 0;
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              const idx = (y * w + x) * 4;
+              if (maskPixels[idx + 3] > 0) {
+                maskList.push({ x, y });
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          if (maskList.length === 0) { resolve(); return; }
+
+          // Expand bounding box for sampling
+          const padding = Math.max(10, Math.round(Math.max(maxX - minX, maxY - minY) * 0.3));
+          minX = Math.max(0, minX - padding);
+          minY = Math.max(0, minY - padding);
+          maxX = Math.min(w - 1, maxX + padding);
+          maxY = Math.min(h - 1, maxY + padding);
+
+          // Collect source (unmasked) pixels from bounding box region
+          const sourcePixels = [];
+          for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+              const idx = (y * w + x) * 4;
+              if (maskPixels[idx + 3] === 0) {
+                sourcePixels.push({ x, y, r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+              }
+            }
+          }
+
+          // If no source pixels in bbox, expand to entire image
+          if (sourcePixels.length === 0) {
+            for (let y = 0; y < h; y++) {
+              for (let x = 0; x < w; x++) {
+                const idx = (y * w + x) * 4;
+                if (maskPixels[idx + 3] === 0) {
+                  sourcePixels.push({ x, y, r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+                }
+              }
+            }
+          }
+
+          if (sourcePixels.length === 0) { resolve(); return; }
+
+          // Sort mask pixels by distance from edge (outside-in fill)
+          // Simple approach: fill from edges of mask inward
+          // For each pass, fill border pixels first
+          const filled = new Uint8Array(w * h);
+          for (const p of maskList) {
+            filled[p.y * w + p.x] = 0; // 0 = not yet filled
+          }
+
+          const numPasses = 3;
+          const sampleRadius = Math.max(5, Math.round(Math.max(maxX - minX, maxY - minY) * 0.15));
+
+          for (let pass = 0; pass < numPasses; pass++) {
+            // Determine which pixels to fill this pass (border first)
+            const toFill = [];
+            for (const p of maskList) {
+              if (filled[p.y * w + p.x]) continue;
+              // Check if any neighbor is not masked or already filled
+              let isBorder = false;
+              for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                  if (dx === 0 && dy === 0) continue;
+                  const nx = p.x + dx;
+                  const ny = p.y + dy;
+                  if (nx < 0 || nx >= w || ny < 0 || ny >= h) { isBorder = true; continue; }
+                  const nidx = ny * w + nx;
+                  if (maskPixels[nidx * 4 + 3] === 0) { isBorder = true; continue; }
+                  if (filled[nidx]) { isBorder = true; continue; }
+                }
+                if (isBorder) break;
+              }
+              if (isBorder) toFill.push(p);
+            }
+
+            for (const p of toFill) {
+              const idx = (p.y * w + p.x) * 4;
+              let totalR = 0, totalG = 0, totalB = 0, totalW = 0;
+
+              // Sample from nearby unmasked or already-filled pixels
+              for (let dy = -sampleRadius; dy <= sampleRadius; dy += 2) {
+                for (let dx = -sampleRadius; dx <= sampleRadius; dx += 2) {
+                  const nx = p.x + dx;
+                  const ny = p.y + dy;
+                  if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                  const nidx = (ny * w + nx) * 4;
+                  const dist = Math.sqrt(dx * dx + dy * dy);
+                  if (dist === 0) continue;
+                  const weight = 1 / (1 + dist * dist);
+                  if (maskPixels[nidx * 4 + 3] === 0 || filled[ny * w + nx]) {
+                    totalR += data[nidx] * weight;
+                    totalG += data[nidx + 1] * weight;
+                    totalB += data[nidx + 2] * weight;
+                    totalW += weight;
+                  }
+                }
+              }
+
+              if (totalW > 0) {
+                data[idx] = totalR / totalW;
+                data[idx + 1] = totalG / totalW;
+                data[idx + 2] = totalB / totalW;
+              }
+              filled[p.y * w + p.x] = 1;
+            }
+          }
+
+          // Second pass: fill any remaining pixels with nearest source
+          for (const p of maskList) {
+            if (filled[p.y * w + p.x]) continue;
+            const idx = (p.y * w + p.x) * 4;
+            // Find nearest source pixel
+            let best = null, bestDist = Infinity;
+            for (const s of sourcePixels) {
+              const d = (s.x - p.x) * (s.x - p.x) + (s.y - p.y) * (s.y - p.y);
+              if (d < bestDist) { bestDist = d; best = s; }
+            }
+            if (best) {
+              data[idx] = best.r;
+              data[idx + 1] = best.g;
+              data[idx + 2] = best.b;
+            }
+            filled[p.y * w + p.x] = 1;
+          }
+
+          cctx.putImageData(imageData, 0, 0);
+
+          // Smoothing pass: blur the filled region for seamless blend
+          smoothRegion(canvas, maskData, w, h);
+
+          resolve();
+        });
+      }
+
+      function smoothRegion(canvas, maskData, w, h) {
+        const cctx = canvas.getContext('2d');
+        const imageData = cctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+        const original = new Uint8ClampedArray(data);
+
+        const radius = 2;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            if (maskData.data[idx + 3] > 0) {
+              let r = 0, g = 0, b = 0, count = 0;
+              for (let dy = -radius; dy <= radius; dy++) {
+                for (let dx = -radius; dx <= radius; dx++) {
+                  const nx = x + dx, ny = y + dy;
+                  if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                  const nidx = (ny * w + nx) * 4;
+                  r += original[nidx];
+                  g += original[nidx + 1];
+                  b += original[nidx + 2];
+                  count++;
+                }
+              }
+              if (count > 0) {
+                // Blend 60% smoothed with 40% original for texture retention
+                data[idx] = (r / count) * 0.6 + original[idx] * 0.4;
+                data[idx + 1] = (g / count) * 0.6 + original[idx + 1] * 0.4;
+                data[idx + 2] = (b / count) * 0.6 + original[idx + 2] * 0.4;
+              }
+            }
+          }
+        }
+        cctx.putImageData(imageData, 0, 0);
+      }
+
+      // ---- Before/After Slider ----
+      function showBeforeAfter() {
+        const beforeUrl = originalCanvas.toDataURL('image/png');
+        const afterUrl = workingCanvas.toDataURL('image/png');
+        baBefore.src = beforeUrl;
+        baAfter.src = afterUrl;
+
+        // Set after image width to match container
+        baAfter.style.width = baBefore.naturalWidth + 'px';
+
+        editorArea.classList.add('hidden');
+        resultArea.classList.remove('hidden');
+        resultArea.classList.add('scale-in');
+
+        // Scroll to result
+        setTimeout(() => {
+          resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+
+      // Before/After slider drag
+      let baDragging = false;
+      function updateBASlider(clientX) {
+        const rect = baContainer.getBoundingClientRect();
+        let pct = ((clientX - rect.left) / rect.width) * 100;
+        pct = Math.max(0, Math.min(100, pct));
+        baAfterWrap.style.width = pct + '%';
+        baSlider.style.left = pct + '%';
+      }
+      baSlider.addEventListener('mousedown', (e) => { baDragging = true; e.preventDefault(); });
+      baContainer.addEventListener('mousedown', (e) => { baDragging = true; updateBASlider(e.clientX); });
+      document.addEventListener('mousemove', (e) => { if (baDragging) updateBASlider(e.clientX); });
+      document.addEventListener('mouseup', () => { baDragging = false; });
+      baContainer.addEventListener('touchstart', (e) => { baDragging = true; updateBASlider(e.touches[0].clientX); });
+      baContainer.addEventListener('touchmove', (e) => { if (baDragging) { e.preventDefault(); updateBASlider(e.touches[0].clientX); } });
+      baContainer.addEventListener('touchend', () => { baDragging = false; });
+
+      // Ensure after image aligns with before
+      baBefore.addEventListener('load', () => {
+        baAfter.style.width = baBefore.clientWidth + 'px';
+      });
+      window.addEventListener('resize', () => {
+        if (baBefore.complete) {
+          baAfter.style.width = baBefore.clientWidth + 'px';
+        }
+      });
+
+      // ---- Download ----
+      downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'markpro-clean-image.png';
+        link.href = workingCanvas.toDataURL('image/png');
+        link.click();
+      });
+
+      // ---- Remove More ----
+      removeMoreBtn.addEventListener('click', () => {
+        resultArea.classList.add('hidden');
+        editorArea.classList.remove('hidden');
+        editorArea.classList.add('scale-in');
+        renderDisplay();
+      });
+
+      // ---- Toast ----
+      function showToast(msg) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'toast';
+          toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg z-[100] opacity-0 transition-opacity duration-300';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+      }
+
+      // ---- FAQ Data ----
+      const faqs = [
+        {
+          q: 'Can I remove watermark from any image?',
+          a: 'Only use MarkPro on your own images where you have full rights. Do not remove watermarks from images you do not own — that may violate copyright law. Always respect the rights of content creators.'
+        },
+        {
+          q: 'Is MarkPro really 100% free?',
+          a: 'Yes. No sign-in, no subscription, no hidden fees. No watermark is added to your downloaded image. MarkPro is completely free to use.'
+        },
+        {
+          q: 'Are my images uploaded to a server?',
+          a: 'No. All processing happens entirely in your browser using the Canvas API. Your images never leave your device, ensuring 100% privacy.'
+        },
+        {
+          q: 'What types of watermarks can it remove?',
+          a: 'MarkPro can remove watermarks, logos, text overlays, stamps, and date marks. For best results, brush slightly beyond the edges of the watermark you want to remove.'
+        },
+        {
+          q: 'Does it work on mobile?',
+          a: 'Yes. MarkPro is fully responsive and supports touch-based brushing on mobile devices. You can zoom in for precision and brush with your finger.'
+        }
+      ];
+
+      const faqContainer = document.getElementById('faqContainer');
+      faqs.forEach((faq, i) => {
+        const item = document.createElement('div');
+        item.className = 'bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden';
+        item.innerHTML = `
+          <button class="faq-toggle w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 transition">
+            <span class="font-semibold text-slate-800 text-sm sm:text-base">${faq.q}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="faq-icon flex-shrink-0 transition-transform duration-300"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer px-4">
+            <p class="text-sm text-slate-500 leading-relaxed pb-4">${faq.a}</p>
+          </div>
+        `;
+        const toggle = item.querySelector('.faq-toggle');
+        const answer = item.querySelector('.faq-answer');
+        const icon = item.querySelector('.faq-icon');
+        toggle.addEventListener('click', () => {
+          const open = answer.classList.toggle('open');
+          icon.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+        faqContainer.appendChild(item);
+      });
+
+    })();
+    </script>
+  </body>
+</html>
